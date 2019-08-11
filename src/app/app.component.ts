@@ -124,6 +124,13 @@ export class AppComponent {
       let subroutine1Text = draw.text(`subroutine1`);
       subroutine1Text.move(150,175).font({ fill: '#f06', family: 'Inconsolata', size: 10 });
       
+      let databaseElem = draw.path(`M60 250 ,C60 220 ,200 220 ,200 250 ,V300 ,C200 330 ,60 330 ,60 300 ,Z
+      M60 250 ,C60 260 ,200 260 ,200 250, 
+      M60 255 ,C60 270 ,200 270 ,200 255
+      M60 260 ,C60 280 ,200 280 ,200 260`);
+      databaseElem.fill('none');
+      databaseElem.stroke({ color: '#f06', width: 2 });
+
       // let y=10;1
       // while(y<containerWH.height) {
       //   let path = paper.path(`M0 ${y},H${containerWH.width}`);
