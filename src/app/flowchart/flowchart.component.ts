@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { element } from 'protractor';
 
-declare var $: any;
 declare var SVG: any;
 
 @Component({
@@ -54,7 +52,8 @@ export class FlowchartComponent {
         id: "el3",
         text: "operation2",
         type: "operation",
-        nextId: "el4"
+        nextId: "el4",
+        nextIdPosition: "right",
       },
       {
         id: "el4",
@@ -72,7 +71,15 @@ export class FlowchartComponent {
           bgColor: "yellow",
           lineColor: "red",
           borderColor: "green"
-        }
+        },
+        nextIdPosition: "right",
+      },
+      {
+        id: "el6",
+        text: "operation4",
+        type: "operation",
+        nextId: "el7",
+        nextIdPosition: "right",
       },
       // {
       //   id: "el6",
@@ -93,27 +100,33 @@ export class FlowchartComponent {
   containerWH: any = {};
 
   constructor() {
-    $(document).ready(() => {
+
+    document.addEventListener("DOMContentLoaded", (event) => {
+      
       console.log(this.perGridWH.width * this.flowChartData.totalGrid);
       let totalWidth = this.perGridWH.width * this.flowChartData.totalGrid;
       let totalHeight = window.innerHeight;
-      $("#flowchart_container").css(
-        {
-          width: totalWidth,
-          height: totalHeight,
-          margin: this.symbolContainerMargin,
-        }
-      );
-      console.log($("#flowchart_container").width());
-      console.log($("#flowchart_container").height());
-      // Creates canvas 
-      this.svgjs = SVG("flowchart_container").size($("#flowchart_container").width(), $("#flowchart_container").height());
-      this.svgjs.defs().attr({ id: 'markerDefs' });
-      $("svg").css({ border: "green solid" })
+      let flowchartContElem  = document.getElementById("flowchart_container");
+      let flowChartContCss = {
+        width: `${totalWidth}px`,
+        height: `${totalHeight}px`,
+        margin: `${this.symbolContainerMargin}px`,
+      }
+      Object.assign(flowchartContElem.style,flowChartContCss);
       this.containerWH = {
-        width: $("#flowchart_container").width(),
-        height: $("#flowchart_container").height(),
+        width:  parseInt(flowchartContElem.style.width, 10),
+        height: parseInt(flowchartContElem.style.height, 10),
       };
+      // Creates canvas 
+      this.svgjs = SVG("flowchart_container").size(this.containerWH.width, this.containerWH.height);
+      this.svgjs.defs().attr({ id: 'markerDefs' });
+      let svgElem  = document.getElementsByTagName("svg")[0];
+      let svgCss = {
+        border: "green solid",
+      }
+      Object.assign(svgElem.style,svgCss);
+      
+      
       this.createGridStructure();
       this.createArrowMarker();
       this.flowChartData.flowList.forEach((flowData, index) => {
@@ -160,7 +173,6 @@ export class FlowchartComponent {
     this.arrowMarker = this.svgjs.marker(8000, 8000, function (add) {
       add.path("M2 59,253 148,1 243,50 151,Z").attr({ stroke: 'black', 'stroke-width': 5 })
     }).attr({ id: 'arrowMarker', fill: 'black' });
-    // M2 59,293 148,1 243,121 151,Z
     this.arrowMarker.size(200, 200);
     this.arrowMarker.ref(250, 150);
   }
@@ -233,7 +245,6 @@ export class FlowchartComponent {
           break;
         }
         case "right": {
-          debugger
           docCord.x1 = lineCord.widthX;
           docCord.y1 = lineCord.y + (this.symbolsWH.document.height / 2);
           break;
@@ -243,7 +254,6 @@ export class FlowchartComponent {
           docCord.y1 = lineCord.heightY + document.height;
         }
       }
-      debugger
       docCord.vy1 = docCord.y1 - document.height;
       docCord.hx = docCord.x1 + document.width;
       docCord.vy2 = docCord.y1;
@@ -268,7 +278,6 @@ export class FlowchartComponent {
           break;
         }
         case "right": {
-          debugger
           opCord.x = lineCord.widthX;
           opCord.y = lineCord.y - (this.symbolsWH.operation.height / 2);
           break;
@@ -325,7 +334,7 @@ export class FlowchartComponent {
         break;
       }
       case "right": {
-        debugger
+        
         connectorLineCord = {
           x: elmBBox.x + elmBBox.width,
           y: elmBBox.y + (elmBBox.height / 2),
@@ -345,14 +354,14 @@ export class FlowchartComponent {
         connectorPathCords.value = `M${connectorLineCord.x} ${connectorLineCord.y}, V${connectorLineCord.heightY}`
       }
     }
-    debugger
+    
     return connectorPathCords;
   }
   drawConnectorLine(flowData, BBox) {
     let connectorLine;
     let connectorPathCords = this.calculateConnectorLineCord(BBox, flowData.nextIdPosition, flowData.type);
     this.addLinesToSVGElemCords(flowData.id, connectorPathCords.connectorLineCord);
-    debugger
+    
     connectorLine = this.svgjs.path(`${connectorPathCords.value}`);
     connectorLine.fill('none');
     connectorLine.stroke({ color: '#f06', width: 3 });
