@@ -56,6 +56,10 @@ export class FlowchartComponent {
       width: 100,
       height: 50,
     },
+    collate: {
+      width: 100,
+      height: 100,
+    },
   }
   defaultLineLength: any = 50;
   symbolContainerMargin: number = 20;
@@ -78,72 +82,84 @@ export class FlowchartComponent {
       },
       {
         id: "el3",
-        text: "io",
-        type: "io",
+        text: "N=1?",
+        type: "decision",
         nextId: "el4",
-        nextIdPosition: "right",
+        nextIdPosition: "bottom",
+        style: {
+          bgColor: "yellow",
+          lineColor: "red",
+          borderColor: "green"
+        },
       },
       {
         id: "el4",
-        text: "operation3",
-        type: "operation",
+        text: "document 1",
+        type: "document",
         nextId: "el5",
-        nextIdPosition: "bottom",
+        nextIdPosition: "right",
+        style: {
+          bgColor: "yellow",
+          lineColor: "red",
+          borderColor: "green"
+        },
       },
       {
         id: "el5",
-        text: "Manual loop1",
-        type: "manual-loop",
+        text: "io",
+        type: "io",
         nextId: "el6",
-        nextIdPosition: "right",
+        nextIdPosition: "bottom",
       },
       {
         id: "el6",
-        text: "display",
-        type: "display",
+        text: "subroutine 1",
+        type: "subroutine",
         nextId: "el7",
         nextIdPosition: "right",
       },
-      // {
-      //   id: "el6",
-      //   text: "delay",
-      //   type: "delay",
-      //   nextId: "el7",
-      //   nextIdPosition: "right",
-      // },
-      // {
-      //   id: "el6",
-      //   text: "document 1",
-      //   type: "document",
-      //   nextId: "el7",
-      //   style: {
-      //     bgColor: "yellow",
-      //     lineColor: "red",
-      //     borderColor: "green"
-      //   },
-      //   nextIdPosition: "bottom",
-      // },
-      // {
-      //   id: "el6",
-      //   text: "subroutine 1",
-      //   type: "subroutine",
-      //   nextId: "el7",
-      //   nextIdPosition: "top",
-      // }
-      // {
-      //   id: "el6",
-      //   text: "sd1",
-      //   type: "stored-data",
-      //   nextId: "el7",
-      //   nextIdPosition: "bottom",
-      // },
-      // {
-      //   id: "el7",
-      //   text: "N=1?",
-      //   type: "decision",
-      //   nextId: "el8",
-      //   nextIdPosition: "right",
-      // }
+      {
+        id: "el7",
+        text: "database",
+        type: "database",
+        nextId: "el8",
+        nextIdPosition: "bottom",
+      },
+      {
+        id: "el8",
+        text: "Manual loop1",
+        type: "manual-loop",
+        nextId: "el9",
+        nextIdPosition: "right",
+      },
+      {
+        id: "el9",
+        text: "sd1",
+        type: "stored-data",
+        nextId: "el10",
+        nextIdPosition: "bottom",
+      },
+       {
+        id: "el10",
+        text: "delay",
+        type: "delay",
+        nextId: "el11",
+        nextIdPosition: "right",
+      },
+      {
+        id: "el11",
+        text: "display",
+        type: "display",
+        nextId: "el12",
+        nextIdPosition: "bottom",
+      },
+      {
+        id: "el12",
+        text: "collate",
+        type: "collate",
+        nextId: "el13",
+        nextIdPosition: "right",
+      },
     ]
   }
   svgElementsCords: any = {};
@@ -157,8 +173,8 @@ export class FlowchartComponent {
       let totalHeight = window.innerHeight;
       let flowchartContElem = document.getElementById("flowchart_container");
       let flowChartContCss = {
-        width: `${totalWidth}px`,
-        height: `${totalHeight}px`,
+        width: `${totalWidth*5}px`,
+        height: `${totalHeight*5}px`,
         margin: `${this.symbolContainerMargin}px`,
       }
       Object.assign(flowchartContElem.style, flowChartContCss);
@@ -212,15 +228,21 @@ export class FlowchartComponent {
             break;
           }
           case "stored-data": {
-            debugger
+            
             this.drawStoredData(flowData);
             break;
           }
           case "delay": {
             this.drawDelay(flowData);
+            break;
           }
           case "display": {
             this.drawDisplay(flowData);
+            break;
+          }
+          case "collate": {
+            this.drawCollate(flowData);
+            break;
           }
         }
       });
@@ -267,8 +289,9 @@ export class FlowchartComponent {
   drawOperation(flowData) {
     let prevElement = this.getPreviousElement(flowData.id);
     let opCord = this.calculateOperationCord(prevElement);
+    const { operation: { width, height } } = this.symbolsWH;
 
-    let opElement = this.svgjs.rect(this.symbolsWH.operation.width, this.symbolsWH.operation.height);
+    let opElement = this.svgjs.rect(width, height);
     opElement.move(opCord.x, opCord.y);
     opElement.fill("none");
     opElement.stroke({ color: '#f06', width: 3 });
@@ -283,11 +306,12 @@ export class FlowchartComponent {
   drawDecision(flowData) {
     let prevElement = this.getPreviousElement(flowData.id);
     let dcsCord = this.calculateDecisionCord(prevElement);
+    const { x1, y1, x2, y2, x3, y3, x4, y4, } = dcsCord;
 
-    let dcsElement = this.svgjs.polyline(`${dcsCord.x1} ${dcsCord.y1}, ${dcsCord.x2} ${dcsCord.y2}, ${dcsCord.x3} ${dcsCord.y3}, ${dcsCord.x4} ${dcsCord.y4}, ${dcsCord.x1} ${dcsCord.y1}`);
-    dcsElement.fill("none");
-    dcsElement.stroke({ color: '#f06', width: 3 });
-
+    let dcsElement = this.svgjs.polyline(`${x1} ${y1}, ${x2} ${y2}, ${x3} ${y3}, ${x4} ${y4}, ${x1} ${y1}`);
+    // dcsElement.fill("none");
+    // dcsElement.stroke({ color: '#f06', width: 3 });
+    this.styleElement(dcsElement, flowData.style);
 
     this.addIdToElement(dcsElement, flowData.id);
     let dcsBBox = this.getElementBBox(dcsElement);
@@ -332,7 +356,7 @@ export class FlowchartComponent {
     subrElement.move(subrCord.x1, subrCord.y1);
     subrElement.fill("none");
     subrElement.stroke({ color: '#f06', width: 3 });
-    debugger
+    
     let subrInnerElement1 = this.svgjs.path(`M${subrCord.ix1} ${subrCord.iy1}, 
     V${subrCord.ivy1}`);
     let subrInnerElement2 = this.svgjs.path(`M${subrCord.ix2} ${subrCord.iy2}, 
@@ -452,6 +476,59 @@ export class FlowchartComponent {
 
     this.drawConnectorLine(flowData, displayBBox);
   }
+  drawCollate(flowData) {
+    let prevElement = this.getPreviousElement(flowData.id);
+    let collateCord = this.calculateCollateCord(prevElement);
+    const { x1, y1, l1x1, l1y1, h1x1, l2x1, l2y1 } = collateCord;
+    let collateElement = this.svgjs.path(`M${x1} ${y1}, L${l1x1} ${l1y1}, H${h1x1}, L${l2x1} ${l2y1}, Z`);
+
+    collateElement.fill("none");
+    collateElement.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(collateElement, flowData.id);
+    let collateBBox = this.getElementBBox(collateElement);
+    this.storeIntoSVGElemCords(flowData.id, collateBBox);
+    this.addTextToFlowSymbol(collateBBox, flowData.text);
+
+    this.drawConnectorLine(flowData, collateBBox);
+  }
+  calculateCollateCord(prevElement) {
+    let collateCord: any = {};
+    
+    this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
+      const { collate } = this.symbolsWH;
+      switch (prevElement.nextIdPosition) {
+        case "top": {
+          collateCord.x1 = collateCord.x - (collate.width / 2);
+          collateCord.y1 = lineCord.heightY;
+          break;
+        }
+        case "left": {
+          collateCord.x1 = lineCord.widthX - collate.width;
+          collateCord.y1 = lineCord.y + (collate.height / 2);
+          break;
+        }
+        case "right": {
+          collateCord.x1 = lineCord.widthX;
+          collateCord.y1 = lineCord.y + (collate.height / 2);
+          break;
+        }
+        default: {
+          collateCord.x1 = lineCord.x - (collate.width / 2);;
+          collateCord.y1 = lineCord.heightY + collate.height;
+        }
+      }
+      collateCord.l1x1 = collateCord.x1 + collate.width;
+      collateCord.l1y1 = collateCord.y1 - collate.height;
+
+      collateCord.h1x1 = collateCord.x1;
+
+      collateCord.l2x1 = collateCord.l1x1;
+      collateCord.l2y1 = collateCord.y1;
+
+    });
+    return collateCord;
+  }
   calculateDisplayCord(prevElement) {
     let displayCord: any = {};
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
@@ -478,7 +555,7 @@ export class FlowchartComponent {
         }
       }
       displayCord.l1x1 = displayCord.x1 - 30;
-      displayCord.l1y1 = displayCord.y1 - (display.height/2);
+      displayCord.l1y1 = displayCord.y1 - (display.height / 2);
 
       displayCord.l2x1 = displayCord.x1;
       displayCord.l2y1 = displayCord.y1 - display.height;
@@ -691,7 +768,7 @@ export class FlowchartComponent {
           break;
         }
         case "left": {
-          debugger
+          
           docCord.x1 = lineCord.widthX - io.width;
           docCord.y1 = lineCord.y + (io.height / 2);
           break;
@@ -719,12 +796,12 @@ export class FlowchartComponent {
   }
   calculateSubrCord(prevElement) {
     let subrCord: any = {};
-    debugger
+    
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
       const { subroutine } = this.symbolsWH;
       switch (prevElement.nextIdPosition) {
         case "top": {
-          debugger
+          
           subrCord.x1 = lineCord.x - (subroutine.width / 2);
           subrCord.y1 = lineCord.heightY - subroutine.height;
           break;
@@ -820,7 +897,7 @@ export class FlowchartComponent {
   }
   calculateDecisionCord(prevElement) {
     let opCord: any = {};
-    debugger
+    
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
       const { decision } = this.symbolsWH;
       switch (prevElement.nextIdPosition) {
