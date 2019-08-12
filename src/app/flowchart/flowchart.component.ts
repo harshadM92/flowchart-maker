@@ -48,6 +48,10 @@ export class FlowchartComponent {
       width: 100,
       height: 50,
     },
+    delay: {
+      width: 100,
+      height: 50,
+    },
   }
   defaultLineLength: any = 50;
   symbolContainerMargin: number = 20;
@@ -80,14 +84,21 @@ export class FlowchartComponent {
         text: "operation3",
         type: "operation",
         nextId: "el5",
-        nextIdPosition: "bottom",
+        nextIdPosition: "right",
       },
       {
         id: "el5",
         text: "Manual loop1",
         type: "manual-loop",
         nextId: "el6",
-        nextIdPosition: "left",
+        nextIdPosition: "top",
+      },
+      {
+        id: "el6",
+        text: "delay",
+        type: "delay",
+        nextId: "el7",
+        nextIdPosition: "right",
       },
       // {
       //   id: "el6",
@@ -108,13 +119,13 @@ export class FlowchartComponent {
       //   nextId: "el7",
       //   nextIdPosition: "top",
       // }
-      {
-        id: "el6",
-        text: "sd1",
-        type: "stored-data",
-        nextId: "el7",
-        nextIdPosition: "bottom",
-      },
+      // {
+      //   id: "el6",
+      //   text: "sd1",
+      //   type: "stored-data",
+      //   nextId: "el7",
+      //   nextIdPosition: "bottom",
+      // },
       // {
       //   id: "el7",
       //   text: "N=1?",
@@ -193,6 +204,9 @@ export class FlowchartComponent {
             debugger
             this.drawStoredData(flowData);
             break;
+          }
+          case "delay": {
+            this.drawDelay(flowData);
           }
         }
       });
@@ -369,7 +383,6 @@ export class FlowchartComponent {
     this.drawConnectorLine(flowData, manualLoopBBox);
   }
   drawStoredData(flowData) {
-    debugger
     let prevElement = this.getPreviousElement(flowData.id);
     let storedDataCord = this.calculateStoredDataCord(prevElement);
 
@@ -389,9 +402,65 @@ export class FlowchartComponent {
 
     this.drawConnectorLine(flowData, storedDataBBox);
   }
+  drawDelay(flowData) {
+    let prevElement = this.getPreviousElement(flowData.id);
+    let delayCord = this.calculateDelayCord(prevElement);
+
+    let delayElement = this.svgjs.path(`M${delayCord.x1} ${delayCord.y1},
+    V${delayCord.v1y1}, H${delayCord.h1x1},
+    C${delayCord.c1x1} ${delayCord.c1y1} ,${delayCord.c1x2} ${delayCord.c1y2} ${delayCord.c1x3} ${delayCord.c1y3}
+    Z`);
+
+    delayElement.fill("none");
+    delayElement.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(delayElement, flowData.id);
+    let delayBBox = this.getElementBBox(delayElement);
+    this.storeIntoSVGElemCords(flowData.id, delayBBox);
+    this.addTextToFlowSymbol(delayBBox, flowData.text);
+
+    this.drawConnectorLine(flowData, delayBBox);
+  }
+  calculateDelayCord(prevElement) {
+    let delayCord: any = {};
+    this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
+      const { delay } = this.symbolsWH;
+      switch (prevElement.nextIdPosition) {
+        case "top": {
+          delayCord.x1 = lineCord.x - (delay.width / 2);
+          delayCord.y1 = lineCord.heightY;
+          break;
+        }
+        case "left": {
+          delayCord.x1 = lineCord.widthX - delay.width;
+          delayCord.y1 = lineCord.y + (delay.height / 2);
+          break;
+        }
+        case "right": {
+          delayCord.x1 = lineCord.widthX;
+          delayCord.y1 = lineCord.y + (delay.height / 2);
+          break;
+        }
+        default: {
+          delayCord.x1 = lineCord.x - (delay.width / 2);;
+          delayCord.y1 = lineCord.heightY + delay.height;
+        }
+      }
+      delayCord.v1y1 = delayCord.y1 - delay.height;
+      delayCord.h1x1 = delayCord.x1 + delay.width;
+
+      delayCord.c1x1 = delayCord.h1x1 + 20;
+      delayCord.c1y1 = delayCord.v1y1;
+      delayCord.c1x2 = delayCord.c1x1;
+      delayCord.c1y2 = delayCord.y1;
+      delayCord.c1x3 = delayCord.h1x1;
+      delayCord.c1y3 = delayCord.y1;
+
+    });
+    return delayCord;
+  }
   calculateStoredDataCord(prevElement) {
     let storedDataCord: any = {};
-    debugger
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
       const { storedData } = this.symbolsWH;
       switch (prevElement.nextIdPosition) {
