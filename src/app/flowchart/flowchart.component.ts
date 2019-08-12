@@ -52,6 +52,10 @@ export class FlowchartComponent {
       width: 100,
       height: 50,
     },
+    display: {
+      width: 100,
+      height: 50,
+    },
   }
   defaultLineLength: any = 50;
   symbolContainerMargin: number = 20;
@@ -84,22 +88,29 @@ export class FlowchartComponent {
         text: "operation3",
         type: "operation",
         nextId: "el5",
-        nextIdPosition: "right",
+        nextIdPosition: "bottom",
       },
       {
         id: "el5",
         text: "Manual loop1",
         type: "manual-loop",
         nextId: "el6",
-        nextIdPosition: "top",
+        nextIdPosition: "right",
       },
       {
         id: "el6",
-        text: "delay",
-        type: "delay",
+        text: "display",
+        type: "display",
         nextId: "el7",
         nextIdPosition: "right",
       },
+      // {
+      //   id: "el6",
+      //   text: "delay",
+      //   type: "delay",
+      //   nextId: "el7",
+      //   nextIdPosition: "right",
+      // },
       // {
       //   id: "el6",
       //   text: "document 1",
@@ -207,6 +218,9 @@ export class FlowchartComponent {
           }
           case "delay": {
             this.drawDelay(flowData);
+          }
+          case "display": {
+            this.drawDisplay(flowData);
           }
         }
       });
@@ -421,6 +435,66 @@ export class FlowchartComponent {
 
     this.drawConnectorLine(flowData, delayBBox);
   }
+  drawDisplay(flowData) {
+    let prevElement = this.getPreviousElement(flowData.id);
+    let displayCord = this.calculateDisplayCord(prevElement);
+    const { x1, y1, l1x1, l1y1, l2x1, l2y1, h1x1, c1x1, c1y1, c1x2, c1y2, c1x3, c1y3 } = displayCord;
+    let displayElement = this.svgjs.path(`M${x1} ${y1}, L${l1x1} ${l1y1}, L${l2x1} ${l2y1}, H${h1x1}
+    ,C${c1x1} ${c1y1}, ${c1x2} ${c1y2}, ${c1x3} ${c1y3}, Z`);
+
+    displayElement.fill("none");
+    displayElement.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(displayElement, flowData.id);
+    let displayBBox = this.getElementBBox(displayElement);
+    this.storeIntoSVGElemCords(flowData.id, displayBBox);
+    this.addTextToFlowSymbol(displayBBox, flowData.text);
+
+    this.drawConnectorLine(flowData, displayBBox);
+  }
+  calculateDisplayCord(prevElement) {
+    let displayCord: any = {};
+    this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
+      const { display } = this.symbolsWH;
+      switch (prevElement.nextIdPosition) {
+        case "top": {
+          displayCord.x1 = lineCord.x - (display.width / 2);
+          displayCord.y1 = lineCord.heightY;
+          break;
+        }
+        case "left": {
+          displayCord.x1 = lineCord.widthX - display.width;
+          displayCord.y1 = lineCord.y + (display.height / 2);
+          break;
+        }
+        case "right": {
+          displayCord.x1 = lineCord.widthX;
+          displayCord.y1 = lineCord.y + (display.height / 2);
+          break;
+        }
+        default: {
+          displayCord.x1 = lineCord.x - (display.width / 2);;
+          displayCord.y1 = lineCord.heightY + display.height;
+        }
+      }
+      displayCord.l1x1 = displayCord.x1 - 30;
+      displayCord.l1y1 = displayCord.y1 - (display.height/2);
+
+      displayCord.l2x1 = displayCord.x1;
+      displayCord.l2y1 = displayCord.y1 - display.height;
+
+      displayCord.h1x1 = displayCord.x1 + display.width;
+
+      displayCord.c1x1 = displayCord.h1x1 + 20;
+      displayCord.c1y1 = displayCord.l2y1;
+      displayCord.c1x2 = displayCord.c1x1;
+      displayCord.c1y2 = displayCord.y1;
+      displayCord.c1x3 = displayCord.h1x1;
+      displayCord.c1y3 = displayCord.y1;
+
+    });
+    return displayCord;
+  }
   calculateDelayCord(prevElement) {
     let delayCord: any = {};
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
@@ -490,7 +564,7 @@ export class FlowchartComponent {
       storedDataCord.c1y2 = storedDataCord.y1 - storedData.height;
       storedDataCord.c1x3 = storedDataCord.x1;
       storedDataCord.c1y3 = storedDataCord.c1y2;
-      
+
       storedDataCord.h1x1 = storedDataCord.x1 + storedData.width;
 
       storedDataCord.c2x1 = storedDataCord.h1x1 - 20;
@@ -531,7 +605,7 @@ export class FlowchartComponent {
       manualLoopCord.l1x1 = manualLoopCord.h1x1 - 10;
       manualLoopCord.l1y1 = manualLoopCord.y1 + manualLoop.height;
       manualLoopCord.h2x1 = manualLoopCord.x1 + 10;
-      
+
     });
     return manualLoopCord;
   }
