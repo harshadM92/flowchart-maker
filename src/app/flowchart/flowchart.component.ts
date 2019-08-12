@@ -72,14 +72,14 @@ export class FlowchartComponent {
         text: "operation3",
         type: "operation",
         nextId: "el5",
-        nextIdPosition: "bottom",
+        nextIdPosition: "right",
       },
       {
         id: "el5",
         text: "operation4",
         type: "operation",
         nextId: "el6",
-        nextIdPosition: "bottom",
+        nextIdPosition: "top",
       },
       // {
       //   id: "el6",
@@ -105,7 +105,7 @@ export class FlowchartComponent {
         text: "db1",
         type: "database",
         nextId: "el7",
-        nextIdPosition: "bottom",
+        nextIdPosition: "right",
       },
       // {
       //   id: "el7",
@@ -316,15 +316,26 @@ export class FlowchartComponent {
     // M60 255 ,C60 270 ,200 270 ,200 255
     // M60 260 ,C60 280 ,200 280 ,200 260`);
    
-    let subrElement = this.svgjs.path(`M${dbCord.x1} ${dbCord.y1},C${dbCord.c1x1} ${dbCord.c1y1}, 
+    let dbElement = this.svgjs.path(`M${dbCord.x1} ${dbCord.y1},C${dbCord.c1x1} ${dbCord.c1y1}, 
     ${dbCord.c1x2} ${dbCord.c1y2} ,${dbCord.c1x3} ${dbCord.c1y3} ,V${dbCord.vy1}
     ,C${dbCord.c2x1} ${dbCord.c2y1} ,${dbCord.c2x2} ${dbCord.c2y2} ,${dbCord.c2x3} ${dbCord.c2y3} ,Z`);
-    subrElement.move(dbCord.x1, dbCord.y1);
-    subrElement.fill("none");
-    subrElement.stroke({ color: '#f06', width: 3 });
+    dbElement.fill("none");
+    dbElement.stroke({ color: '#f06', width: 3 });
 
-    this.addIdToElement(subrElement, flowData.id);
-    let dbBBox = this.getElementBBox(subrElement);
+    let dbCurve1 = this.svgjs.path(`M${dbCord.c3x1} ${dbCord.c3y1} ,C${dbCord.c3x2} ${dbCord.c3y2} ,${dbCord.c3x3} ${dbCord.c3y3},${dbCord.c3x4} ${dbCord.c3y4}`);
+    let dbCurve2 = this.svgjs.path(`M${dbCord.c4x1} ${dbCord.c4y1} ,C${dbCord.c4x2} ${dbCord.c4y2} ,${dbCord.c4x3} ${dbCord.c4y3},${dbCord.c4x4} ${dbCord.c4y4}`);
+    let dbCurve3 = this.svgjs.path(`M${dbCord.c5x1} ${dbCord.c5y1} ,C${dbCord.c5x2} ${dbCord.c5y2} ,${dbCord.c5x3} ${dbCord.c5y3},${dbCord.c5x4} ${dbCord.c5y4}`);
+
+
+    dbCurve1.fill("none");
+    dbCurve1.stroke({ color: '#f06', width: 3 });
+    dbCurve2.fill("none");
+    dbCurve2.stroke({ color: '#f06', width: 3 });
+    dbCurve3.fill("none");
+    dbCurve3.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(dbElement, flowData.id);
+    let dbBBox = this.getElementBBox(dbElement);
     this.storeIntoSVGElemCords(flowData.id, dbBBox);
     this.addTextToFlowSymbol(dbBBox, flowData.text);
 
@@ -337,23 +348,22 @@ export class FlowchartComponent {
       switch (prevElement.nextIdPosition) {
         case "top": {
           dbCord.x1 = lineCord.x - (database.width / 2);
-          dbCord.y1 = lineCord.heightY;
+          dbCord.y1 = (lineCord.heightY - database.height) - 10;
           break;
         }
         case "left": {
-          debugger
           dbCord.x1 = lineCord.widthX - database.width;
-          dbCord.y1 = lineCord.y + (database.height / 2);
+          dbCord.y1 = lineCord.y - (database.height / 2);
           break;
         }
         case "right": {
-          dbCord.x1 = lineCord.widthX - 5;
-          dbCord.y1 = lineCord.y + (database.height / 2);
+          dbCord.x1 = lineCord.widthX;
+          dbCord.y1 = lineCord.y - (database.height/2);
           break;
         }
         default: {
           dbCord.x1 = lineCord.x - (database.width / 2);;
-          dbCord.y1 = lineCord.heightY;
+          dbCord.y1 = lineCord.heightY + 10;
         }
       }
       dbCord.c1x1 = dbCord.x1;
@@ -371,7 +381,34 @@ export class FlowchartComponent {
       dbCord.c2y2 = dbCord.c2y1;
       dbCord.c2x3 = dbCord.x1;
       dbCord.c2y3 = dbCord.vy1;
-      
+
+      dbCord.c3x1 = dbCord.x1;
+      dbCord.c3y1 = dbCord.y1;
+      dbCord.c3x2 = dbCord.c3x1;
+      dbCord.c3y2 = dbCord.c3y1 + 10;
+      dbCord.c3x3 = dbCord.c1x3;
+      dbCord.c3y3 = dbCord.c3y2;
+      dbCord.c3x4 = dbCord.c3x3;
+      dbCord.c3y4 = dbCord.c3y1;
+
+      dbCord.c4x1 = dbCord.c3x1;
+      dbCord.c4y1 = dbCord.c3y1 + 5;
+      dbCord.c4x2 = dbCord.c4x1;
+      dbCord.c4y2 = dbCord.c4y1 + 10;
+      dbCord.c4x3 = dbCord.c3x3;
+      dbCord.c4y3 = dbCord.c4y2;
+      dbCord.c4x4 = dbCord.c4x3;
+      dbCord.c4y4 = dbCord.c4y1;
+
+      dbCord.c5x1 = dbCord.c3x1;
+      dbCord.c5y1 = dbCord.c4y1 + 5;
+      dbCord.c5x2 = dbCord.c5x1;
+      dbCord.c5y2 = dbCord.c5y1 + 10;
+      dbCord.c5x3 = dbCord.c4x3;
+      dbCord.c5y3 = dbCord.c5y2;
+      dbCord.c5x4 = dbCord.c5x3;
+      dbCord.c5y4 = dbCord.c5y1;
+
     });
     return dbCord;
   }
