@@ -39,7 +39,11 @@ export class FlowchartComponent {
     database: {
       width: 100,
       height: 50
-    }
+    },
+    manualLoop: {
+      width: 100,
+      height: 50,
+    },
   }
   defaultLineLength: any = 50;
   symbolContainerMargin: number = 20;
@@ -65,21 +69,21 @@ export class FlowchartComponent {
         text: "io",
         type: "io",
         nextId: "el4",
-        nextIdPosition: "bottom",
+        nextIdPosition: "right",
       },
       {
         id: "el4",
         text: "operation3",
         type: "operation",
         nextId: "el5",
-        nextIdPosition: "right",
+        nextIdPosition: "top",
       },
       {
         id: "el5",
-        text: "operation4",
-        type: "operation",
+        text: "Manual loop1",
+        type: "manual-loop",
         nextId: "el6",
-        nextIdPosition: "top",
+        nextIdPosition: "right",
       },
       // {
       //   id: "el6",
@@ -105,7 +109,7 @@ export class FlowchartComponent {
         text: "db1",
         type: "database",
         nextId: "el7",
-        nextIdPosition: "right",
+        nextIdPosition: "bottom",
       },
       // {
       //   id: "el7",
@@ -162,24 +166,23 @@ export class FlowchartComponent {
             break;
           }
           case "document": {
-            debugger
             this.drawDocument(flowData);
             break;
           }
           case "io": {
-            debugger
             this.drawIO(flowData);
             break;
           }
           case "subroutine": {
-            debugger
             this.drawSubroutine(flowData);
             break;
           }
           case "database": {
-            debugger
             this.drawDatabase(flowData);
             break;
+          }
+          case "manual-loop": {
+            this.drawManualLoop(flowData);
           }
         }
       });
@@ -210,6 +213,7 @@ export class FlowchartComponent {
     this.arrowMarker.size(200, 200);
     this.arrowMarker.ref(250, 150);
   }
+
   drawStart(flowData) {
     let startElement = this.svgjs.ellipse(100, 50).move(0, 0);
     startElement.fill('none');
@@ -310,12 +314,7 @@ export class FlowchartComponent {
   drawDatabase(flowData) {
     let prevElement = this.getPreviousElement(flowData.id);
     let dbCord = this.calculateDBCord(prevElement);
-      
-    // let databaseElem = draw.path(`M60 250 ,C60 220 ,200 220 ,200 250 ,V300 ,C200 330 ,60 330 ,60 300 ,Z
-    // M60 250 ,C60 260 ,200 260 ,200 250, 
-    // M60 255 ,C60 270 ,200 270 ,200 255
-    // M60 260 ,C60 280 ,200 280 ,200 260`);
-   
+
     let dbElement = this.svgjs.path(`M${dbCord.x1} ${dbCord.y1},C${dbCord.c1x1} ${dbCord.c1y1}, 
     ${dbCord.c1x2} ${dbCord.c1y2} ,${dbCord.c1x3} ${dbCord.c1y3} ,V${dbCord.vy1}
     ,C${dbCord.c2x1} ${dbCord.c2y1} ,${dbCord.c2x2} ${dbCord.c2y2} ,${dbCord.c2x3} ${dbCord.c2y3} ,Z`);
@@ -325,7 +324,6 @@ export class FlowchartComponent {
     let dbCurve1 = this.svgjs.path(`M${dbCord.c3x1} ${dbCord.c3y1} ,C${dbCord.c3x2} ${dbCord.c3y2} ,${dbCord.c3x3} ${dbCord.c3y3},${dbCord.c3x4} ${dbCord.c3y4}`);
     let dbCurve2 = this.svgjs.path(`M${dbCord.c4x1} ${dbCord.c4y1} ,C${dbCord.c4x2} ${dbCord.c4y2} ,${dbCord.c4x3} ${dbCord.c4y3},${dbCord.c4x4} ${dbCord.c4y4}`);
     let dbCurve3 = this.svgjs.path(`M${dbCord.c5x1} ${dbCord.c5y1} ,C${dbCord.c5x2} ${dbCord.c5y2} ,${dbCord.c5x3} ${dbCord.c5y3},${dbCord.c5x4} ${dbCord.c5y4}`);
-
 
     dbCurve1.fill("none");
     dbCurve1.stroke({ color: '#f06', width: 3 });
@@ -340,6 +338,59 @@ export class FlowchartComponent {
     this.addTextToFlowSymbol(dbBBox, flowData.text);
 
     this.drawConnectorLine(flowData, dbBBox);
+  }
+  drawManualLoop(flowData) {
+    let prevElement = this.getPreviousElement(flowData.id);
+    let manualLoopCord = this.calculateManualLoopCord(prevElement);
+
+    let manualLoopElement = this.svgjs.path(`M${manualLoopCord.x1} ${manualLoopCord.y1}, 
+    H${manualLoopCord.h1x1}, 
+    L${manualLoopCord.l1x1} ${manualLoopCord.l1y1}, 
+    H${manualLoopCord.h2x1}, z`);
+
+    manualLoopElement.fill("none");
+    manualLoopElement.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(manualLoopElement, flowData.id);
+    let docBBox = this.getElementBBox(manualLoopElement);
+    this.storeIntoSVGElemCords(flowData.id, docBBox);
+    this.addTextToFlowSymbol(docBBox, flowData.text);
+
+    this.drawConnectorLine(flowData, docBBox);
+  }
+  calculateManualLoopCord(prevElement) {
+    let manualLoopCord: any = {};
+    debugger
+    this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
+      const { manualLoop } = this.symbolsWH;
+      switch (prevElement.nextIdPosition) {
+        case "top": {
+          manualLoopCord.x1 = lineCord.x - (manualLoop.width / 2);
+          manualLoopCord.y1 = (lineCord.heightY - manualLoop.height);
+          break;
+        }
+        case "left": {
+          manualLoopCord.x1 = lineCord.widthX - manualLoop.width;
+          manualLoopCord.y1 = lineCord.y - (manualLoop.height / 2);
+          break;
+        }
+        case "right": {
+          manualLoopCord.x1 = lineCord.widthX;
+          manualLoopCord.y1 = lineCord.y - (manualLoop.height / 2);
+          break;
+        }
+        default: {
+          manualLoopCord.x1 = lineCord.x - (manualLoop.width / 2);;
+          manualLoopCord.y1 = lineCord.heightY;
+        }
+      }
+      manualLoopCord.h1x1 = manualLoopCord.x1 + manualLoop.width;
+      manualLoopCord.l1x1 = manualLoopCord.h1x1 - 10;
+      manualLoopCord.l1y1 = manualLoopCord.y1 + manualLoop.height;
+      manualLoopCord.h2x1 = manualLoopCord.x1 + 10;
+      
+    });
+    return manualLoopCord;
   }
   calculateDBCord(prevElement) {
     let dbCord: any = {};
@@ -358,7 +409,7 @@ export class FlowchartComponent {
         }
         case "right": {
           dbCord.x1 = lineCord.widthX;
-          dbCord.y1 = lineCord.y - (database.height/2);
+          dbCord.y1 = lineCord.y - (database.height / 2);
           break;
         }
         default: {
@@ -372,9 +423,9 @@ export class FlowchartComponent {
       dbCord.c1y2 = dbCord.c1y1;
       dbCord.c1x3 = dbCord.c1x2;
       dbCord.c1y3 = dbCord.y1;
-      
+
       dbCord.vy1 = dbCord.y1 + database.height;
-      
+
       dbCord.c2x1 = dbCord.c1x3;
       dbCord.c2y1 = dbCord.vy1 + 10;
       dbCord.c2x2 = dbCord.x1;
