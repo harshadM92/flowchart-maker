@@ -44,6 +44,10 @@ export class FlowchartComponent {
       width: 100,
       height: 50,
     },
+    storedData: {
+      width: 100,
+      height: 50,
+    },
   }
   defaultLineLength: any = 50;
   symbolContainerMargin: number = 20;
@@ -76,14 +80,14 @@ export class FlowchartComponent {
         text: "operation3",
         type: "operation",
         nextId: "el5",
-        nextIdPosition: "top",
+        nextIdPosition: "bottom",
       },
       {
         id: "el5",
         text: "Manual loop1",
         type: "manual-loop",
         nextId: "el6",
-        nextIdPosition: "right",
+        nextIdPosition: "left",
       },
       // {
       //   id: "el6",
@@ -106,8 +110,8 @@ export class FlowchartComponent {
       // }
       {
         id: "el6",
-        text: "db1",
-        type: "database",
+        text: "sd1",
+        type: "stored-data",
         nextId: "el7",
         nextIdPosition: "bottom",
       },
@@ -183,6 +187,12 @@ export class FlowchartComponent {
           }
           case "manual-loop": {
             this.drawManualLoop(flowData);
+            break;
+          }
+          case "stored-data": {
+            debugger
+            this.drawStoredData(flowData);
+            break;
           }
         }
       });
@@ -352,15 +362,79 @@ export class FlowchartComponent {
     manualLoopElement.stroke({ color: '#f06', width: 3 });
 
     this.addIdToElement(manualLoopElement, flowData.id);
-    let docBBox = this.getElementBBox(manualLoopElement);
-    this.storeIntoSVGElemCords(flowData.id, docBBox);
-    this.addTextToFlowSymbol(docBBox, flowData.text);
+    let manualLoopBBox = this.getElementBBox(manualLoopElement);
+    this.storeIntoSVGElemCords(flowData.id, manualLoopBBox);
+    this.addTextToFlowSymbol(manualLoopBBox, flowData.text);
 
-    this.drawConnectorLine(flowData, docBBox);
+    this.drawConnectorLine(flowData, manualLoopBBox);
+  }
+  drawStoredData(flowData) {
+    debugger
+    let prevElement = this.getPreviousElement(flowData.id);
+    let storedDataCord = this.calculateStoredDataCord(prevElement);
+
+    let storedDataElement = this.svgjs.path(`M${storedDataCord.x1} ${storedDataCord.y1}, 
+    C${storedDataCord.c1x1} ${storedDataCord.c1y1}, ${storedDataCord.c1x2} ${storedDataCord.c1y2},
+    ${storedDataCord.c1x3} ${storedDataCord.c1y3}, H${storedDataCord.h1x1}
+    C${storedDataCord.c2x1} ${storedDataCord.c2y1}, ${storedDataCord.c2x2} ${storedDataCord.c2y2},
+    ${storedDataCord.c2x3} ${storedDataCord.c2y3}, z`);
+
+    storedDataElement.fill("none");
+    storedDataElement.stroke({ color: '#f06', width: 3 });
+
+    this.addIdToElement(storedDataElement, flowData.id);
+    let storedDataBBox = this.getElementBBox(storedDataElement);
+    this.storeIntoSVGElemCords(flowData.id, storedDataBBox);
+    this.addTextToFlowSymbol(storedDataBBox, flowData.text);
+
+    this.drawConnectorLine(flowData, storedDataBBox);
+  }
+  calculateStoredDataCord(prevElement) {
+    let storedDataCord: any = {};
+    debugger
+    this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
+      const { storedData } = this.symbolsWH;
+      switch (prevElement.nextIdPosition) {
+        case "top": {
+          storedDataCord.x1 = lineCord.x - (storedData.width / 2);
+          storedDataCord.y1 = lineCord.heightY;
+          break;
+        }
+        case "left": {
+          storedDataCord.x1 = lineCord.widthX - storedData.width;
+          storedDataCord.y1 = lineCord.y + (storedData.height / 2);
+          break;
+        }
+        case "right": {
+          storedDataCord.x1 = lineCord.widthX;
+          storedDataCord.y1 = lineCord.y + (storedData.height / 2);
+          break;
+        }
+        default: {
+          storedDataCord.x1 = lineCord.x - (storedData.width / 2);;
+          storedDataCord.y1 = lineCord.heightY + storedData.height;
+        }
+      }
+      storedDataCord.c1x1 = storedDataCord.x1 - 20;
+      storedDataCord.c1y1 = storedDataCord.y1;
+      storedDataCord.c1x2 = storedDataCord.c1x1;
+      storedDataCord.c1y2 = storedDataCord.y1 - storedData.height;
+      storedDataCord.c1x3 = storedDataCord.x1;
+      storedDataCord.c1y3 = storedDataCord.c1y2;
+      
+      storedDataCord.h1x1 = storedDataCord.x1 + storedData.width;
+
+      storedDataCord.c2x1 = storedDataCord.h1x1 - 20;
+      storedDataCord.c2y1 = storedDataCord.c1y3;
+      storedDataCord.c2x2 = storedDataCord.c2x1;
+      storedDataCord.c2y2 = storedDataCord.y1;
+      storedDataCord.c2x3 = storedDataCord.h1x1;
+      storedDataCord.c2y3 = storedDataCord.c2y2;
+    });
+    return storedDataCord;
   }
   calculateManualLoopCord(prevElement) {
     let manualLoopCord: any = {};
-    debugger
     this.svgElementsCords[prevElement.id].lines.map((lineCord) => {
       const { manualLoop } = this.symbolsWH;
       switch (prevElement.nextIdPosition) {
@@ -480,7 +554,7 @@ export class FlowchartComponent {
           break;
         }
         case "right": {
-          docCord.x1 = lineCord.widthX - 5;
+          docCord.x1 = lineCord.widthX;
           docCord.y1 = lineCord.y + (io.height / 2);
           break;
         }
@@ -651,9 +725,9 @@ export class FlowchartComponent {
     }
   }
   calculateConnectorLineCord(elmBBox, nextIdPosition, type) {
-    if (type === "document") {
-      elmBBox.height = this.symbolsWH.document.height;
-    }
+    // if (type === "document") {
+    //   elmBBox.height = this.symbolsWH.document.height;
+    // }
     let connectorLineCord;
     let connectorPathCords: any = {};
     switch (nextIdPosition) {
