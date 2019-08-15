@@ -25,7 +25,6 @@ load() {
       if (this.chart) {
         this.chart.clean();
       }
-      debugger
       this.chart = parse(code);
       this.chart.drawSVG('canvas', {
         // 'x': 30,
