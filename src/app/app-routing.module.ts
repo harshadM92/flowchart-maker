@@ -6,7 +6,7 @@ import { FlowchartComponent } from './flowchart/flowchart.component';
 const routes: Routes = [
   {path:'',redirectTo:'flowchart',pathMatch:'full'},
   {path:'test',component:FlowchartTestComponent},
-  {path:'flowchart',component:FlowchartComponent}
+  {path:'flowchart',component:FlowchartComponent},
 ];
 
 @NgModule({
